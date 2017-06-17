@@ -1,0 +1,32 @@
+﻿06060005 2355 (A) Comprar pedras @Rua +Pedras
+(B) Assistir Wonder Woman @Cinema +WONDERWOMAN
+(C) 128585 @Casa +SEMIDEIA
+(d) Adicionando mais uma tarefa... @Casa 
+16062017 (A) Finalizar o projeto @Casa +P1
+(B) Calaboca e aumenta o volume 
+(A) Implementar Algoritmos Recursivos @Casa +Recursão
+08062017 1925 Continuar estudos em Integrais 
+17052016 1300 Tarefa qualquer 
+02062015 1235 (X) CCC 
+02062016 1500 (z) DDD 
+02052016 1500 (a) EEE 
+02052016 1359 (c) BBB 
+(B) Realizar tarefa 3 do projeto +ProjetoP1
+(B) Medicar o cachorro @Casa +Medicamento
+(C) Medicar o outro cachorro +Medicamento
+(D) Lembrar desta tarefa 
+(D) 2530 @Hospital 
+(E) Começar a ler Berserk +Mangá
+01011999 Fazer algo criticamente importante +Importante
+1200 Platinar o Python 
+02042016 1200 (B) Quebrando o programa 
+15052016 1200 (A) Testando 
+15062016 1100 (A) Outro teste 
+15052016 1150 (A) Mais um teste 
+02042016 0400 (C) Construir um robô para testar o projeto 
+03052016 1300 (B) Hoje é dia de festa +Festa
+03052016 1300 (A) Hoje é dia de trabalho 
+020202 199999 @@@ +@
+Construir uma Estrela da Morte @Casa +EstreladaMorte
+1300 (B) Assistir aquele filme 
+13022002 (C) Maratona de poderoso chefão @Casa +Estaéumapropostairrecusável
