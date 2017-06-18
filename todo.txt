@@ -1,32 +1,34 @@
-﻿06060005 2355 (A) Comprar pedras @Rua +Pedras
-(B) Assistir Wonder Woman @Cinema +WONDERWOMAN
+18062017 2359 (A) GAME OVER @Multiverso +P1
+(A) 1820 Procurar erros no projeto 
+110231 1900 (B) Data errada 
+17122011 (C) @ +H
+6999 Hora errada 
+16122011 (C) Data anterior 
+18122011 (C) Data posterior 
+17122011 1235 (A) Olha a hora! 
+6060005 2355 (A) Comprar pedras @Rua +Pedras
+(A) Assistir Wonder Woman @Cinema +WONDERWOMAN
 (C) 128585 @Casa +SEMIDEIA
 (d) Adicionando mais uma tarefa... @Casa 
 16062017 (A) Finalizar o projeto @Casa +P1
 (B) Calaboca e aumenta o volume 
-(A) Implementar Algoritmos Recursivos @Casa +Recursão
+(A) Implementar Algoritmos Recursivos @Casa +Recurs�o
 08062017 1925 Continuar estudos em Integrais 
 17052016 1300 Tarefa qualquer 
+01052016 1500 Ler artigo sobre a Teoria do Caos 
 02062015 1235 (X) CCC 
 02062016 1500 (z) DDD 
 02052016 1500 (a) EEE 
+02052016 1400 (b) AAA 
 02052016 1359 (c) BBB 
+6617 Estudar Integrais 
 (B) Realizar tarefa 3 do projeto +ProjetoP1
 (B) Medicar o cachorro @Casa +Medicamento
 (C) Medicar o outro cachorro +Medicamento
-(D) Lembrar desta tarefa 
-(D) 2530 @Hospital 
-(E) Começar a ler Berserk +Mangá
+Lembrar desta tarefa (D) 
+(E) Come�ar a ler Berserk +Mang�
 01011999 Fazer algo criticamente importante +Importante
 1200 Platinar o Python 
-02042016 1200 (B) Quebrando o programa 
-15052016 1200 (A) Testando 
-15062016 1100 (A) Outro teste 
-15052016 1150 (A) Mais um teste 
-02042016 0400 (C) Construir um robô para testar o projeto 
-03052016 1300 (B) Hoje é dia de festa +Festa
-03052016 1300 (A) Hoje é dia de trabalho 
-020202 199999 @@@ +@
-Construir uma Estrela da Morte @Casa +EstreladaMorte
-1300 (B) Assistir aquele filme 
-13022002 (C) Maratona de poderoso chefão @Casa +Estaéumapropostairrecusável
+157489 2100 Teste 
+123456789 1500 descricao 
+01052016 1500 Ordem alfab�tica? 

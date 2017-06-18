@@ -46,21 +46,34 @@ def adicionar(descricao, extras):
     return False
   else:
     novaAtividade = ''
+    adic_descricao1 = ''
+    adic_descricao2 = ''
     if dataValida(extras[0]):
-      novaAtividade += extras[0] + ' '
-    if horaValida(extras[1]):
-      novaAtividade += extras[1] + ' '
-    if prioridadeValida(extras[2]):
-      novaAtividade += extras[2] + ' '
-    novaAtividade += descricao + ' '
+      adic_descricao1 += extras[0] + ' '
+    elif extras[0] != '':
+      descricao = extras[0] + ' ' + descricao
+    if horaValida(extras[1]) and dataValida(extras[0]):
+      adic_descricao1 += extras[1] + ' '
+    elif extras[1] != '':
+      descricao = extras[1] + ' ' + descricao
+    if prioridadeValida(extras[2]) and dataValida(extras[0]):
+      adic_descricao1 += extras[2] + ' '
+    elif extras[2] != '':
+      descricao = extras[2] + ' ' + descricao
     if contextoValido(extras[3]):
-      novaAtividade += extras[3] + ' '
+      adic_descricao2 += extras[3] + ' '
+    elif extras[3] != '':
+      descricao = extras[3] + ' ' + descricao
     if projetoValido(extras[4]):
-      novaAtividade += extras[4]
+      adic_descricao2 += extras[4]
+    elif extras[4] != '':
+      descricao = extras[4] + ' ' + descricao
+
+    novaAtividade = adic_descricao1 + descricao + ' ' + adic_descricao2
 
     # Escreve no TODO_FILE. 
     try: 
-      fp = open(TODO_FILE, 'a', encoding = 'utf-8-sig')
+      fp = open(TODO_FILE, 'a+')
       fp.write(novaAtividade + "\n")
       fp.close()
     except IOError as err:
@@ -82,16 +95,20 @@ def prioridadeValida(pri):
 
 # Valida a hora. Consideramos que o dia tem 24 horas, como no Brasil, ao invés
 # de dois blocos de 12 (AM e PM), como nos EUA.
-def horaValida(horaMin) :
+# Combina os dois primeiros digitos(h) e checa se pertence ao intervalo [0,23] e os dois ultimos e checa se pertence ao intervalo [0,59] correspondente
+# horas e minutos(BR). Também verifica o tamanho permitido (4 dígitos) e se é formado por apenas digitos.
+def horaValida(horaMin):
   if len(horaMin) != 4 or not soDigitos(horaMin) \
-  or not(int(horaMin[0]+horaMin[1]) >= 0 and int(horaMin[0]+horaMin[1]) <= 23) and (int(horaMin[0]+horaMin[1]) >= 0 and int(horaMin[0]+horaMin[1]) <= 59):
+  or not((int(horaMin[0]+horaMin[1]) >= 0 and int(horaMin[0]+horaMin[1]) <= 23) and (int(horaMin[2]+horaMin[3]) >= 0 and int(horaMin[2]+horaMin[3]) <= 59)):
     return False
   else:
       return True
 
 # Valida datas. Verificar inclusive se não estamos tentando
 # colocar 31 dias em fevereiro. Não precisamos nos certificar, porém,
-# de que um ano é bissexto. 
+# de que um ano é bissexto.
+# Verifica se é formado de apenas dígitos e que o tamanho está dentro do permitido(8). Transforma os dois primeiros digitos em dias e os dois sequentes em
+# mes. Depois checa se é um dia válido de acordo com as definições reais de cada mês.
 def dataValida(data) :
   if soDigitos(data) and len(data) == 8:
     dia = int(data[0]+data[1])
@@ -154,28 +171,39 @@ def organizar(linhas):
     desc = ''
     contexto = ''
     projeto = ''
+
+    # Variáveis para checar se ou a data e o contexto estão inválidos. Uma vez que uma das duas estejam TRUE a análise dos termos sequentes as mesmas
+    # será de coloca-los na variável desc (descricao)
+    data_invalida = False
     
     l = l.strip() # remove espaços em branco e quebras de linha do começo e do fim
     tokens = l.split() # quebra o string em palavras
 
     i = 0
-    
+    # Laço para checar de um a um os termos e identificar a cada qual componetne pré-definido eles pertencem.
+    # Uma vez que o termo for "encaixado" ele é removido. Todavia ser o termo for tokens[0] ou tokens[3] e não se
+    # encaixarem em NENHUMA característica deve ser considerada como um componente avaliado como inválido dando sequência
+    # ao que foi definido previamente. 
     while (i < len(tokens)):
       if dataValida(tokens[i]):
         data = tokens.pop(i)
-      elif horaValida(tokens[i]):
+      elif horaValida(tokens[i]) and data_invalida == False:
         hora = tokens.pop(i)
-      elif prioridadeValida(tokens[i]):
+      elif prioridadeValida(tokens[i]) and data_invalida == False:
         pri = tokens.pop(i)
       elif contextoValido(tokens[i]):
         contexto = tokens.pop(i)
       elif projetoValido(tokens[i]):
         projeto = tokens.pop(i)
+      elif i == 0:
+        data_invalida = True
+        i += 1
       else:
         i += 1
 
     i = 0
-    
+
+    # Laço para unir a descricao em um string
     while i < len(tokens):
       if i == len(tokens) - 1:
         desc += tokens[i]
@@ -183,7 +211,6 @@ def organizar(linhas):
         desc += tokens[i] + " "
       i += 1
       
-    
     # Processa os tokens um a um, verificando se são as partes da atividade.
     # Por exemplo, se o primeiro token é uma data válida, deve ser guardado
     # na variável data e posteriormente removido a lista de tokens. Feito isso,
@@ -206,57 +233,64 @@ def organizar(linhas):
 # Uma extensão possível é listar com base em diversos critérios: (i) atividades com certa prioridade;
 # (ii) atividades a ser realizadas em certo contexto; (iii) atividades associadas com
 # determinado projeto; (vi) atividades de determinado dia (data específica, hoje ou amanhã). Isso não
-
-
 # é uma das tarefas básicas do projeto, porém. 
+
 def listar():
-  arq = open("todo.txt", "r", encoding = "utf-8-sig")
-  linhas = arq.read().splitlines()
-  arq.close()
-  linhas_organizadas = organizar(linhas)
-  linhas_ordenadas = ordenarPorPrioridade(ordenarPorDataHora(linhas_organizadas))
-  linhas_organizadas = organizar(linhas)
-  i = 0
-  j = 0
-  #print(linhas_organizadas)
-  #print(linhas_ordenadas)
-  achou = False
-  linha = ""
-  while i < len(linhas_organizadas):
-    extras = linhas_ordenadas[i][1]
-    while j < len(linhas_organizadas) and achou == False:
-      if (linhas_ordenadas[i] == linhas_organizadas[j]) and (linhas_organizadas[j][0] != ''):
-        linha += str(j+1) + " "
-        if dataValida(extras[0]):
-          linha += extras[0][0:2] + '/' + extras[0][2:4] + '/' + extras[0][4:] + ' '
-        if horaValida(extras[1]):
-          linha += extras[1][0:2] + 'h' + extras[1][2:] + 'm' + ' '
-        if prioridadeValida(extras[2]):
-          linha += extras[2] + ' '
-        linha += linhas_ordenadas[i][0] + ' '
-        if contextoValido(extras[3]):
-          linha += extras[3] + ' '
-        if projetoValido(extras[4]):
-          linha += extras[4]
-          
-        if extras[2] == '(A)' or extras[2] == '(a)':
-          printCores(linha, RED + BOLD)
-        elif extras[2] == '(B)' or extras[2] == '(b)':
-          printCores(linha, CYAN)
-        elif extras[2] == '(C)' or extras[2] == '(c)':
-          printCores(linha, GREEN)
-        elif extras[2] == '(D)' or extras[2] == '(d)':
-          printCores(linha, YELLOW)
-        else:
-          print(linha)
-        achou = True
-        
-      j += 1
+  try:
+    arq = open("todo.txt", "r")
+    linhas = arq.read().splitlines()
+    arq.close()
+    assert linhas != [], "O arquivo está vazio. Adicione uma tarefa com o comando 'a'."
+    linhas_organizadas = organizar(linhas)
+    linhas_ordenadas = ordenarPorPrioridade(ordenarPorDataHora(linhas_organizadas))
+    linhas_organizadas = organizar(linhas)
+    i = 0
     j = 0
+
     achou = False
     linha = ""
-    i += 1
-    
+
+    while i < len(linhas_organizadas):
+      extras = linhas_ordenadas[i][1]
+      while j < len(linhas_organizadas) and achou == False:
+        if (linhas_ordenadas[i] == linhas_organizadas[j]) and (linhas_organizadas[j][0] != ''):
+          linha += str(j+1) + " "
+          if dataValida(extras[0]):
+            linha += extras[0][0:2] + '/' + extras[0][2:4] + '/' + extras[0][4:] + ' '
+          if horaValida(extras[1]):
+            linha += extras[1][0:2] + 'h' + extras[1][2:] + 'm' + ' '
+          if prioridadeValida(extras[2]):
+            linha += extras[2] + ' '
+          linha += linhas_ordenadas[i][0] + ' '
+          if contextoValido(extras[3]):
+            linha += extras[3] + ' '
+          if projetoValido(extras[4]):
+            linha += extras[4]
+            
+          if extras[2] == '(A)' or extras[2] == '(a)':
+            printCores(linha, RED + BOLD)
+          elif extras[2] == '(B)' or extras[2] == '(b)':
+            printCores(linha, CYAN)
+          elif extras[2] == '(C)' or extras[2] == '(c)':
+            printCores(linha, GREEN)
+          elif extras[2] == '(D)' or extras[2] == '(d)':
+            printCores(linha, YELLOW)
+          else:
+            print(linha)
+          achou = True
+          
+        j += 1
+      j = 0
+      achou = False
+      linha = ""
+      i += 1
+
+
+  except IOError as err:
+    print("Não foi possível escrever para o arquivo " + TODO_FILE)
+    print("Verifique se ele existe ou adicione alguma tarefa para criá-lo.")
+    print(err)
+      
 def ordenarPorDataHora(itens):
   i = 0
   j = 0
@@ -324,7 +358,7 @@ def ordenarPorPrioridade(itens):
           itens[j+1] = itens[j]
           itens[j] = temp
         else:
-          if strdata != strdata and strdata != '' and strdataprox != '':
+          if strdata != strdataprox and strdata != '' and strdataprox != '':
             if (int(strdata[4:]) > int(strdataprox[4:]))\
             or((int(strdata[4:]) == int(strdataprox[4:])) and (int(strdata[2]+strdata[3]) > int(strdataprox[2]+strdataprox[3])))\
             or ((int(strdata[4:]) == int(strdataprox[4:])) and (int(strdata[2]+strdata[3]) == int(strdataprox[2]+strdataprox[3]))\
@@ -349,83 +383,103 @@ def ordenarPorPrioridade(itens):
   return itens
 
 def fazer(num):
-  arq = open("todo.txt", "r", encoding = "utf-8-sig")
-  linhas = arq.read().splitlines()
-  arq.close()
-  linhas_organizadas = organizar(linhas)
   try:
-    if int(num) >= 1 and linhas_organizadas[int(num)-1][0] != "":
-      atividade_concluida = linhas_organizadas.pop(int(num)-1)
-      descricao = atividade_concluida[0]
-      extras = atividade_concluida[1]
-    else:
-      raise ValueError("ERRO: VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
-    
-    linhas = open("todo.txt", 'w', encoding = 'utf-8-sig')
-    linhas.close()
-    for i in linhas_organizadas:
-      adicionar(i[0], i[1])
+    arq = open("todo.txt", "r")
+    linhas = arq.read().splitlines()
+    arq.close()
+    linhas_organizadas = organizar(linhas)
+    try:
+      if int(num) >= 1 and linhas_organizadas[int(num)-1][0] != "":
+        atividade_concluida = linhas_organizadas.pop(int(num)-1)
+        descricao = atividade_concluida[0]
+        extras = atividade_concluida[1]
+      else:
+        raise ValueError("ERRO: VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
       
-    atividade_concluida = ''
-    if dataValida(extras[0]):
-      atividade_concluida += extras[0] + ' '
-    if horaValida(extras[1]):
-      atividade_concluida += extras[1] + ' '
-    if prioridadeValida(extras[2]):
-      atividade_concluida += extras[2] + ' '
-    atividade_concluida += descricao + ' '
-    if contextoValido(extras[3]):
-      atividade_concluida += extras[3] + ' '
-    if projetoValido(extras[4]):
-      atividade_concluida += extras[4]
-    try: 
-      fp = open(ARCHIVE_FILE, 'a', encoding = 'utf-8-sig')
-      fp.write(atividade_concluida + "\n")
-      fp.close()
-    except IOError as err:
-      print("Não foi possível escrever para o arquivo " + ARCHIVE_FILE)
+      linhas = open("todo.txt", 'w')
+      linhas.close()
+      for i in linhas_organizadas:
+        adicionar(i[0], i[1])
+        
+      atividade_concluida = ''
+      if dataValida(extras[0]):
+        atividade_concluida += extras[0] + ' '
+      if horaValida(extras[1]):
+        atividade_concluida += extras[1] + ' '
+      if prioridadeValida(extras[2]):
+        atividade_concluida += extras[2] + ' '
+      atividade_concluida += descricao + ' '
+      if contextoValido(extras[3]):
+        atividade_concluida += extras[3] + ' '
+      if projetoValido(extras[4]):
+        atividade_concluida += extras[4]
+        
+      try: 
+        fp = open(ARCHIVE_FILE, 'a+')
+        fp.write(atividade_concluida + "\n")
+        fp.close()
+      except IOError as err:
+        print("Não foi possível escrever para o arquivo " + ARCHIVE_FILE)
+        print("Verifique se ele existe ou adicione alguma tarefa para criá-lo.")
+        print(err)
+
+    except Exception:
+      print("ERRO: VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")  
+
+  except IOError as err:
+      print("Não foi possível escrever para o arquivo " + TODO_FILE)
+      print("Verifique se ele existe ou adicione alguma tarefa para criá-lo.")
       print(err)
-  except Exception:
-    print("ERRO: VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
 
 def remover(n):
-  arq = open("todo.txt", "r", encoding = "utf-8-sig")
-  linhas = arq.read().splitlines()
-  arq.close()
-  linhas_organizadas = organizar(linhas)
   try:
-    if int(n) >= 1 and linhas_organizadas[int(n)-1][0] != "":
-      linhas_organizadas.pop(int(n)-1)
-    else:
-      raise ValueError("VERIFIQUE SE A ATIVIDADE "+n+" EXISTE")
-    linhas = open("todo.txt", 'w', encoding = 'utf-8-sig')
-    linhas.close()
-    for i in linhas_organizadas:
-      adicionar(i[0], i[1])
-  except Exception as e:
-    print("ERRO: VERIFIQUE SE A ATIVIDADE "+n+" EXISTE")
+    arq = open("todo.txt", "r")
+    linhas = arq.read().splitlines()
+    arq.close()
+    linhas_organizadas = organizar(linhas)
+    try:
+      if int(n) >= 1 and linhas_organizadas[int(n)-1][0] != "":
+        linhas_organizadas.pop(int(n)-1)
+      else:
+        raise ValueError("VERIFIQUE SE A ATIVIDADE "+n+" EXISTE")
+      linhas = open("todo.txt", 'w')
+      linhas.close()
+      for i in linhas_organizadas:
+        adicionar(i[0], i[1])
+    except Exception:
+      print("ERRO: VERIFIQUE SE A ATIVIDADE "+n+" EXISTE")
+  except IOError as err:
+    print("Não foi possível escrever para o arquivo " + TODO_FILE)
+    print("Verifique se ele existe ou adicione alguma tarefa para criá-lo.")
+    print(err)
 
 # prioridade é uma letra entre A a Z, onde A é a mais alta e Z a mais baixa.
 # num é o número da atividade cuja prioridade se planeja modificar, conforme
 # exibido pelo comando 'l'. 
 def priorizar(num, prioridade):
-  arq = open("todo.txt", "r", encoding = "utf-8-sig")
-  linhas = arq.read().splitlines()
-  arq.close()
-  linhas_organizadas = organizar(linhas)
+  assert (prioridade.upper() >= 'A' and prioridade.upper() <= 'Z'), "Esta prioridade não é válida. Tente novamente."
   try:
-    if int(num) >= 1 and linhas_organizadas[int(num)-1][0] != "":
-        extras = linhas_organizadas[int(num)-1][1]
-        extras = (extras[0], extras[1], "("+prioridade.upper()+")", extras[3], extras[4])
-        linhas_organizadas[int(num)-1] = (linhas_organizadas[int(num)-1][0], extras)
-    else:
-        raise ValueError("VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
-    linhas = open("todo.txt", 'w', encoding = 'utf-8-sig')
-    linhas.close()
-    for i in linhas_organizadas:
-      adicionar(i[0], i[1])
-  except Exception as e:
-    print("ERRO: VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
+    arq = open("todo.txt", "r")
+    linhas = arq.read().splitlines()
+    arq.close()
+    linhas_organizadas = organizar(linhas)
+    try:
+      if int(num) >= 1 and linhas_organizadas[int(num)-1][0] != "":
+          extras = linhas_organizadas[int(num)-1][1]
+          extras = (extras[0], extras[1], "("+prioridade.upper()+")", extras[3], extras[4])
+          linhas_organizadas[int(num)-1] = (linhas_organizadas[int(num)-1][0], extras)
+      else:
+          raise ValueError("VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
+      linhas = open("todo.txt", 'w')
+      linhas.close()
+      for i in linhas_organizadas:
+        adicionar(i[0], i[1])
+    except Exception:
+      print("ERRO: VERIFIQUE SE A ATIVIDADE "+num+" EXISTE")
+  except IOError as err:
+      print("Não foi possível escrever para o arquivo " + TODO_FILE)
+      print("Verifique se ele existe ou adicione alguma tarefa para criá-lo.")
+      print(err)
 
 # Esta função processa os comandos e informações passados através da linha de comando e identifica
 # que função do programa deve ser invocada. Por exemplo, se o comando 'adicionar' foi usado,
@@ -458,8 +512,8 @@ def processarComandos(comandos):
     else :
       print("Comando inválido.")
   except Exception as e:
-    print(e)
-    print("VERIQUE SE DIGITOU UM COMANDO POSSÍVEL")
+    print("VERIQUE SE DIGITOU CORRETAMENTE UM COMANDO POSSÍVEL")
+    print("Análise de Erro:", e)
   
 # sys.argv é uma lista de strings onde o primeiro elemento é o nome do programa
 # invocado a partir da linha de comando e os elementos restantes são tudo que
